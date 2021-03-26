@@ -19,12 +19,22 @@ namespace Client
     {
         private static Socket sock;
         public static string fileToSend = null;
+        private static Action<String> ClientLog;
         private static void SendMessageToServer(Dictionary<string, string> message)
         {
-            using (StreamWriter writer = new StreamWriter(new NetworkStream(sock)))
+            try
             {
-                writer.WriteLine(JsonConvert.SerializeObject(message));
-                writer.Flush();
+                using (StreamWriter writer = new StreamWriter(new NetworkStream(sock)))
+                {
+                    var x = JsonConvert.SerializeObject(message);
+                    writer.WriteLine(JsonConvert.SerializeObject(message));
+                    writer.Flush();
+                    //wordsToAddToLexicon.Clear();
+                }
+            }
+            catch (Exception e)
+            {
+                ClientLog("Could not connect.Server connection lost.");
             }
         }
 
@@ -71,6 +81,7 @@ namespace Client
         {
             try
             {
+                ClientLog = log;
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 sock.Connect(IPAddress.Parse("127.0.0.1"), 8000);
 
