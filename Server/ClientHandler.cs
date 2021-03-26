@@ -64,9 +64,15 @@ namespace MyServer
                             username = message["exit"];
                             Server.log("User disconnected: " + username);
                             listOfUserName.Remove(username);
-                            Server.log("list of currently connected users : ");
-                            foreach(string user in listOfUserName){
-                                Server.log(user+"\n");
+                            if (listOfUserName.Count>0) {
+                                Server.log("list of currently connected users : ");
+                                foreach (string user in listOfUserName) {
+                                    Server.log(user + "\n");
+                                }
+                            }
+                            else
+                            {
+                                Server.log("no active user connection available");
                             }
                         }
                         else
