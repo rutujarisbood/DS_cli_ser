@@ -14,7 +14,12 @@ namespace MyServer
         private static Collection<string> ReferenceWords;
         static FileUtils()
         {
-            ReferenceWords =  new Collection<string>(ReadFileContents("C:\\sample files\\serverFile.txt.txt").Split(' '));
+            ReadLexicon();
+        }
+
+        private static void ReadLexicon()
+        {
+            ReferenceWords = new Collection<string>(ReadFileContents("C:\\sample files\\serverFile.txt.txt").Split(' '));
         }
 
         public static string ReadFileContents(string filename)
@@ -39,6 +44,29 @@ namespace MyServer
                 return String.Join(" ", words);
             }
             return filecontents;
+        }
+        //https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-write-to-a-text-file
+        public static  void AddWordsToLexicon(string wordsToAdd)
+        {
+            try
+            {
+                using StreamWriter file = new StreamWriter("C:\\sample files\\serverFile.txt.txt", append: true);
+                file.Write(wordsToAdd);
+                //ReadLexicon(); 
+            }
+            catch (Exception e)
+            {
+                //
+            }
+            finally
+            {
+                ReadLexicon();
+            }
+        }
+
+        public static void checkForRepeatWords(string wordsToAdd)
+        {
+
         }
     }
 }

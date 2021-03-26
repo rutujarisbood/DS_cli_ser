@@ -35,11 +35,13 @@ namespace ClientUI
             this.label1 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
+            this.Add_button = new System.Windows.Forms.Button();
+            this.Add_textbox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(330, 53);
+            this.button1.Location = new System.Drawing.Point(555, 77);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(106, 29);
             this.button1.TabIndex = 0;
@@ -49,10 +51,10 @@ namespace ClientUI
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(14, 114);
+            this.textBox1.Location = new System.Drawing.Point(25, 114);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(689, 307);
+            this.textBox1.Size = new System.Drawing.Size(753, 307);
             this.textBox1.TabIndex = 1;
             // 
             // textBox2
@@ -75,7 +77,7 @@ namespace ClientUI
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(34, 35);
+            this.button2.Location = new System.Drawing.Point(667, 77);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(109, 29);
             this.button2.TabIndex = 4;
@@ -85,19 +87,39 @@ namespace ClientUI
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(636, 72);
+            this.button3.Location = new System.Drawing.Point(25, 18);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(94, 29);
+            this.button3.Size = new System.Drawing.Size(106, 29);
             this.button3.TabIndex = 5;
             this.button3.Text = "Exit";
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // Add_button
+            // 
+            this.Add_button.Location = new System.Drawing.Point(290, 78);
+            this.Add_button.Name = "Add_button";
+            this.Add_button.Size = new System.Drawing.Size(94, 29);
+            this.Add_button.TabIndex = 6;
+            this.Add_button.Text = "Add";
+            this.Add_button.UseVisualStyleBackColor = true;
+            this.Add_button.Click += new System.EventHandler(this.Add_button_Click);
+            // 
+            // Add_textbox
+            // 
+            this.Add_textbox.Location = new System.Drawing.Point(25, 79);
+            this.Add_textbox.Name = "Add_textbox";
+            this.Add_textbox.PlaceholderText = "word to be added to server lexicon";
+            this.Add_textbox.Size = new System.Drawing.Size(259, 27);
+            this.Add_textbox.TabIndex = 7;
             // 
             // ClientUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.Add_textbox);
+            this.Controls.Add(this.Add_button);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.label1);
@@ -121,5 +143,7 @@ namespace ClientUI
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button Add_button;
+        private System.Windows.Forms.TextBox Add_textbox;
     }
 }

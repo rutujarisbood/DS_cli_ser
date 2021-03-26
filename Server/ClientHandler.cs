@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Timers;
 
 namespace MyServer
 {
@@ -14,9 +15,37 @@ namespace MyServer
         private Socket client;
         private static List<string> listOfUserName = new List<string>();
         private string username;
+       // private Boolean pollResult;
+        private Timer timer1;
+        public void InitTimer()
+        {
+            timer1 = new Timer();
+            timer1.Elapsed += new ElapsedEventHandler(timer1_Tick);
+            timer1.Interval = 10000; // in miliseconds
+            timer1.Start();
+        }
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (this.client.Connected) {
+                Console.WriteLine("timer called...*************");
+                Server.log("polling cli****");
+
+                Dictionary<string, string> responseToSend = new Dictionary<string, string>();
+
+                responseToSend.Add("poll", "checkQueue");
+                ///Server.log("User connected: " + username);
+                //responseToSend.Add("file", null);
+                SendMessage(responseToSend);
+            }
+            else
+            {
+                timer1.Stop();
+            }
+        }
         public ClientHandler(Socket client)
         {
             this.client = client;
+            
         }
 
         private void SendMessage(Dictionary<string, string> message)
@@ -54,8 +83,13 @@ namespace MyServer
         {
             try
             {
+                
+                //s.Poll(-1, SelectMode.SelectRead)
                 while (true)
                 {
+                    
+                    //pollResult = this.client.Poll(10000, SelectMode.SelectRead);
+                    
                     var message = ReadMessage();
                     if (message != null)
                     {
@@ -64,6 +98,12 @@ namespace MyServer
                             username = message["exit"];
                             Server.log("User disconnected: " + username);
                             listOfUserName.Remove(username);
+                        }else if (message.ContainsKey("wordQueue"))
+                        {
+                            //todo 9096
+                            var wordsToAdd = message["wordQueue"];
+                            Server.log("adding words to lexicon : "+wordsToAdd);
+                            FileUtils.AddWordsToLexicon(wordsToAdd);
                         }
                         else
                         {
@@ -89,6 +129,7 @@ namespace MyServer
                                     Server.log("User connected: " + username);
                                     //responseToSend.Add("file", null);
                                     SendMessage(responseToSend);
+                                    InitTimer();
                                 }
                                 else
                                 {
@@ -107,8 +148,9 @@ namespace MyServer
 
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Server.log(e.ToString());
                 Server.log($"Client {username} disconnected");
                 throw;
             }

@@ -51,5 +51,15 @@ namespace ClientUI
             Client.Client.exitClient(textBox2.Text);
             Environment.Exit(0);
         }
+
+        private void Add_button_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Add_textbox.Text))
+            {
+                //var wordToAdd = Add_textbox.Text;
+                Client.Client.addWordToQueue(Add_textbox.Text);
+                Add_textbox.Clear();
+            }
+        }
     }
 }

@@ -19,12 +19,24 @@ namespace Client
     {
         private static Socket sock;
         public static string fileToSend = null;
+        public static Queue<string> wordsToAddToLexicon = new Queue<string>();
+        private static Action<String> ClientLog;
+
+
         private static void SendMessageToServer(Dictionary<string, string> message)
         {
-            using (StreamWriter writer = new StreamWriter(new NetworkStream(sock)))
+            try
             {
-                writer.WriteLine(JsonConvert.SerializeObject(message));
-                writer.Flush();
+                using (StreamWriter writer = new StreamWriter(new NetworkStream(sock)))
+                {
+                    var x = JsonConvert.SerializeObject(message);
+                    writer.WriteLine(JsonConvert.SerializeObject(message));
+                    writer.Flush();
+                    //wordsToAddToLexicon.Clear();
+                }
+            }catch(Exception e)
+            {
+                ClientLog("Server connection lost.Please connect to server and try again");
             }
         }
 
@@ -67,10 +79,26 @@ namespace Client
             SendMessageToServer(fmessage);
         }
 
+        public static void addWordToQueue(String wordToAdd)
+        {
+            ClientLog("word added to queue");
+            //byte[] byData = System.Text.Encoding.ASCII.GetBytes(wordToAdd);
+            //try
+            //{
+            //    sock.Send(byData);
+            //}
+            //catch(Exception e)
+            //{
+            //    ClientLog(e.ToString());
+            //}
+            wordsToAddToLexicon.Enqueue(wordToAdd);
+        }
+
         public static void Run(Action<String> log, String clientName)
         {
             try
             {
+                ClientLog = log;
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 sock.Connect(IPAddress.Parse("127.0.0.1"), 8000);
 
@@ -112,6 +140,27 @@ namespace Client
                                     log("File processing failed.");
                                     break;
                             }
+                        }else if (message.ContainsKey("poll") && message["poll"] == "checkQueue" && wordsToAddToLexicon.Count>0)
+                        {
+                            //ref: https://www.dotnetperls.com/convert-list-string
+                            ClientLog("preparing lexicon queue to send" );
+                            StringBuilder builder = new StringBuilder();
+                            // Loop through all strings.
+                            var temp = wordsToAddToLexicon.ToArray();
+                            
+                            foreach (string t in temp)
+                            {
+                                // Append string to StringBuilder.
+                                builder.Append(" ").Append(t);
+                            }
+                            // Get string from StringBuilder.
+                            string result = builder.ToString();
+                            //Dictionary<string, string> messageToSend = null;
+                            ClientLog("sending to server : " + result);
+                            //messageToSend = new Dictionary<string, string> { { "wordQueue" , result } };
+                            var frmessage = new Dictionary<string, string> { { "wordQueue", result } };
+                            SendMessageToServer(frmessage);
+                            wordsToAddToLexicon.Clear();
                         }
 
                     }
