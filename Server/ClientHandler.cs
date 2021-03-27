@@ -98,7 +98,20 @@ namespace MyServer
                             username = message["exit"];
                             Server.log("User disconnected: " + username);
                             listOfUserName.Remove(username);
-                        }else if (message.ContainsKey("wordQueue"))
+                            if (listOfUserName.Count > 0)
+                            {
+                                Server.log("list of currently connected users : ");
+                                foreach (string user in listOfUserName)
+                                {
+                                    Server.log(user + "\n");
+                                }
+                            }
+                            else
+                            {
+                                Server.log("no active user connection available");
+                            }
+                        }
+                        else if (message.ContainsKey("wordQueue"))
                         {
                             //todo 9096
                             var wordsToAdd = message["wordQueue"];

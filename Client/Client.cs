@@ -36,7 +36,7 @@ namespace Client
                 }
             }catch(Exception e)
             {
-                ClientLog("Server connection lost.Please connect to server and try again");
+                ClientLog("Could not connect.Server connection lost.");
             }
         }
 
