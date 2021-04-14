@@ -27,6 +27,11 @@ namespace ClientUI
             textBox1.Text += message + Environment.NewLine;
         }
 
+        public void Append(String message)
+        {
+            lexicon_textBox.Text += message + Environment.NewLine;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             Task.Run(() =>
@@ -57,9 +62,20 @@ namespace ClientUI
             if (!string.IsNullOrEmpty(Add_textbox.Text))
             {
                 //var wordToAdd = Add_textbox.Text;
-                Client.Client.addWordToQueue(Add_textbox.Text);
+                lexicon_textBox.Clear();
+                Client.Client.addWordToQueue((String message) => { Append(message); },Add_textbox.Text);
                 Add_textbox.Clear();
             }
+        }
+
+        //public void clearLexicon_textBox()
+        //{
+        //    lexicon_textBox.Clear();
+        //}
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

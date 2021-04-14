@@ -79,7 +79,7 @@ namespace Client
             SendMessageToServer(fmessage);
         }
 
-        public static void addWordToQueue(String wordToAdd)
+        public static void addWordToQueue(Action<String> append,String wordToAdd)
         {
             ClientLog("word added to queue");
             //byte[] byData = System.Text.Encoding.ASCII.GetBytes(wordToAdd);
@@ -92,6 +92,11 @@ namespace Client
             //    ClientLog(e.ToString());
             //}
             wordsToAddToLexicon.Enqueue(wordToAdd);
+            foreach(string val in wordsToAddToLexicon)
+            {
+                append(val);
+            }
+
         }
 
         public static void Run(Action<String> log, String clientName)
@@ -151,7 +156,7 @@ namespace Client
                             foreach (string t in temp)
                             {
                                 // Append string to StringBuilder.
-                                builder.Append(" ").Append(t);
+                                builder.Append(t).Append(" ");
                             }
                             // Get string from StringBuilder.
                             string result = builder.ToString();
@@ -161,6 +166,7 @@ namespace Client
                             var frmessage = new Dictionary<string, string> { { "wordQueue", result } };
                             SendMessageToServer(frmessage);
                             wordsToAddToLexicon.Clear();
+                            //ClientUI.ClientUI.clearLexicon_textBox();
                         }
 
                     }

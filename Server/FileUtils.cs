@@ -50,6 +50,7 @@ namespace MyServer
         {
             try
             {
+                //var result = String.Join(" ", wordsToAdd.ToArray());
                 using StreamWriter file = new StreamWriter("C:\\sample files\\serverFile.txt.txt", append: true);
                 file.Write(wordsToAdd);
                 //ReadLexicon(); 

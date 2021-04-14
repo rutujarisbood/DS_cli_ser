@@ -37,11 +37,12 @@ namespace ClientUI
             this.button3 = new System.Windows.Forms.Button();
             this.Add_button = new System.Windows.Forms.Button();
             this.Add_textbox = new System.Windows.Forms.TextBox();
+            this.lexicon_textBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(555, 77);
+            this.button1.Location = new System.Drawing.Point(598, 68);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(106, 29);
             this.button1.TabIndex = 0;
@@ -51,15 +52,16 @@ namespace ClientUI
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(25, 114);
+            this.textBox1.Location = new System.Drawing.Point(295, 114);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(753, 307);
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox1.Size = new System.Drawing.Size(533, 369);
             this.textBox1.TabIndex = 1;
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(555, 15);
+            this.textBox2.Location = new System.Drawing.Point(605, 18);
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(223, 27);
             this.textBox2.TabIndex = 2;
@@ -69,7 +71,7 @@ namespace ClientUI
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.label1.ForeColor = System.Drawing.Color.Maroon;
-            this.label1.Location = new System.Drawing.Point(330, 18);
+            this.label1.Location = new System.Drawing.Point(384, 21);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(206, 20);
             this.label1.TabIndex = 3;
@@ -77,7 +79,7 @@ namespace ClientUI
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(667, 77);
+            this.button2.Location = new System.Drawing.Point(719, 68);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(109, 29);
             this.button2.TabIndex = 4;
@@ -89,7 +91,7 @@ namespace ClientUI
             // 
             this.button3.Location = new System.Drawing.Point(25, 18);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(106, 29);
+            this.button3.Size = new System.Drawing.Size(82, 29);
             this.button3.TabIndex = 5;
             this.button3.Text = "Exit";
             this.button3.UseVisualStyleBackColor = true;
@@ -97,9 +99,9 @@ namespace ClientUI
             // 
             // Add_button
             // 
-            this.Add_button.Location = new System.Drawing.Point(290, 78);
+            this.Add_button.Location = new System.Drawing.Point(295, 66);
             this.Add_button.Name = "Add_button";
-            this.Add_button.Size = new System.Drawing.Size(94, 29);
+            this.Add_button.Size = new System.Drawing.Size(71, 29);
             this.Add_button.TabIndex = 6;
             this.Add_button.Text = "Add";
             this.Add_button.UseVisualStyleBackColor = true;
@@ -107,17 +109,28 @@ namespace ClientUI
             // 
             // Add_textbox
             // 
-            this.Add_textbox.Location = new System.Drawing.Point(25, 79);
+            this.Add_textbox.Location = new System.Drawing.Point(25, 68);
             this.Add_textbox.Name = "Add_textbox";
             this.Add_textbox.PlaceholderText = "word to be added to server lexicon";
-            this.Add_textbox.Size = new System.Drawing.Size(259, 27);
+            this.Add_textbox.Size = new System.Drawing.Size(256, 27);
             this.Add_textbox.TabIndex = 7;
+            // 
+            // lexicon_textBox
+            // 
+            this.lexicon_textBox.Location = new System.Drawing.Point(25, 114);
+            this.lexicon_textBox.Multiline = true;
+            this.lexicon_textBox.Name = "lexicon_textBox";
+            this.lexicon_textBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.lexicon_textBox.Size = new System.Drawing.Size(256, 369);
+            this.lexicon_textBox.TabIndex = 8;
+            this.lexicon_textBox.TextChanged += new System.EventHandler(this.textBox3_TextChanged);
             // 
             // ClientUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(855, 508);
+            this.Controls.Add(this.lexicon_textBox);
             this.Controls.Add(this.Add_textbox);
             this.Controls.Add(this.Add_button);
             this.Controls.Add(this.button3);
@@ -145,5 +158,6 @@ namespace ClientUI
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button Add_button;
         private System.Windows.Forms.TextBox Add_textbox;
+        private System.Windows.Forms.TextBox lexicon_textBox;
     }
 }
