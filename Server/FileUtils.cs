@@ -2,6 +2,7 @@
 // UTA ID: 1001843943
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,7 +12,8 @@ namespace MyServer
 {
     static class FileUtils
     {
-        private static Collection<string> ReferenceWords;
+        // using Map/Dictionary to avoid checking duplicates manually.
+        private static Dictionary<string, string> ReferenceWords;
         static FileUtils()
         {
             ReadLexicon();
@@ -19,7 +21,9 @@ namespace MyServer
 
         private static void ReadLexicon()
         {
-            ReferenceWords = new Collection<string>(ReadFileContents("C:\\sample files\\serverFile.txt.txt").Split(' '));
+            var words = new Collection<string>(ReadFileContents("C:\\sample files\\serverFile.txt.txt").Split(' '));
+
+            ReferenceWords = words.ToDictionary<string, string>(value => value);
         }
 
         public static string ReadFileContents(string filename)
@@ -33,9 +37,9 @@ namespace MyServer
             if (!string.IsNullOrEmpty(filecontents))
             {
                 var words = filecontents.Split(' ');
-                for (var i = 0; i< words.Length; i++ )
+                for (var i = 0; i < words.Length; i++)
                 {
-                    if (ReferenceWords.Contains(words[i]))
+                    if (ReferenceWords.ContainsKey(words[i]))
                     {
                         words[i] = "[" + words[i] + "]";
                     }
@@ -45,29 +49,28 @@ namespace MyServer
             }
             return filecontents;
         }
-        //https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-write-to-a-text-file
-        public static  void AddWordsToLexicon(string wordsToAdd)
+
+        public static void AddToLexicon(string[] words)
         {
-            try
+            // Since we switched the ReferenceWords to a dictionary, we don't need to worry about the duplicates. They are overwritten.
+            if (words != null && words.Length > 0)
             {
-                //var result = String.Join(" ", wordsToAdd.ToArray());
-                using StreamWriter file = new StreamWriter("C:\\sample files\\serverFile.txt.txt", append: true);
-                file.Write(wordsToAdd);
-                //ReadLexicon(); 
-            }
-            catch (Exception e)
-            {
-                //
-            }
-            finally
-            {
-                ReadLexicon();
+                // lamda type for loop
+                words.ToList().ForEach(x => ReferenceWords[x] = x);
+                try
+                {
+                    File.WriteAllText("C:\\sample files\\serverFile.txt.txt", String.Join(' ', ReferenceWords.Keys));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("error in writing file");
+                }
+                finally
+                {
+                    ReadLexicon();
+                }
             }
         }
 
-        public static void checkForRepeatWords(string wordsToAdd)
-        {
-
-        }
     }
 }

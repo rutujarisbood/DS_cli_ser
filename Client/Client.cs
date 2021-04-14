@@ -7,6 +7,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -19,9 +20,30 @@ namespace Client
     {
         private static Socket sock;
         public static string fileToSend = null;
-        public static Queue<string> wordsToAddToLexicon = new Queue<string>();
-        private static Action<String> ClientLog;
 
+        // https://docs.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.observablecollection-1?view=net-5.0
+        //  an event is fired whenever any modification happens to a collection.
+        // Since we are not using a Queue, we clear the contents of wordsToAddToLexicon after we use it to send to server which results in event trigger.
+        public static ObservableCollection<string> wordsToAddToLexicon = new ObservableCollection<string>();
+
+        private static Action<String> ClientLog;
+        public static Action<String> updateLexicons;
+        static Client()
+        {
+            // we set our event handler in the static constructor of this class.
+            wordsToAddToLexicon.CollectionChanged += WordsToAddToLexicon_CollectionChanged;
+        }
+
+        private static void WordsToAddToLexicon_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Instead of the append, we simply set the final text of the lexicon box.
+            // If there are values in the list, set val, else set null when the list is cleared (When words are sent to server.)
+            string val = String.Join(Environment.NewLine, wordsToAddToLexicon);
+            if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+                updateLexicons(val);
+            else updateLexicons(null);
+
+        }
 
         private static void SendMessageToServer(Dictionary<string, string> message)
         {
@@ -34,7 +56,8 @@ namespace Client
                     writer.Flush();
                     //wordsToAddToLexicon.Clear();
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 ClientLog("Could not connect.Server connection lost.");
             }
@@ -79,24 +102,10 @@ namespace Client
             SendMessageToServer(fmessage);
         }
 
-        public static void addWordToQueue(Action<String> append,String wordToAdd)
+        public static void addWordToQueue(String wordToAdd)
         {
             ClientLog("word added to queue");
-            //byte[] byData = System.Text.Encoding.ASCII.GetBytes(wordToAdd);
-            //try
-            //{
-            //    sock.Send(byData);
-            //}
-            //catch(Exception e)
-            //{
-            //    ClientLog(e.ToString());
-            //}
-            wordsToAddToLexicon.Enqueue(wordToAdd);
-            foreach(string val in wordsToAddToLexicon)
-            {
-                append(val);
-            }
-
+            wordsToAddToLexicon.Add(wordToAdd);
         }
 
         public static void Run(Action<String> log, String clientName)
@@ -130,7 +139,6 @@ namespace Client
                 while (true)
                 {
                     Dictionary<string, string> message = null;
-                    
                     while ((message = ReadMessage()) != null)
                     {
                         if (message.ContainsKey("status") && message.ContainsKey("file"))
@@ -145,28 +153,18 @@ namespace Client
                                     log("File processing failed.");
                                     break;
                             }
-                        }else if (message.ContainsKey("poll") && message["poll"] == "checkQueue" && wordsToAddToLexicon.Count>0)
+                        }
+                        else if (message.ContainsKey("poll") && message["poll"] == "checkQueue" && wordsToAddToLexicon.Count > 0)
                         {
-                            //ref: https://www.dotnetperls.com/convert-list-string
-                            ClientLog("preparing lexicon queue to send" );
-                            StringBuilder builder = new StringBuilder();
-                            // Loop through all strings.
-                            var temp = wordsToAddToLexicon.ToArray();
-                            
-                            foreach (string t in temp)
-                            {
-                                // Append string to StringBuilder.
-                                builder.Append(t).Append(" ");
-                            }
-                            // Get string from StringBuilder.
-                            string result = builder.ToString();
-                            //Dictionary<string, string> messageToSend = null;
+                            ClientLog("preparing lexicon queue to send");
+
+                            // get the contents of list separated by space.
+                            string result = String.Join(' ', wordsToAddToLexicon);
+                            wordsToAddToLexicon.Clear();
+
                             ClientLog("sending to server : " + result);
-                            //messageToSend = new Dictionary<string, string> { { "wordQueue" , result } };
                             var frmessage = new Dictionary<string, string> { { "wordQueue", result } };
                             SendMessageToServer(frmessage);
-                            wordsToAddToLexicon.Clear();
-                            //ClientUI.ClientUI.clearLexicon_textBox();
                         }
 
                     }

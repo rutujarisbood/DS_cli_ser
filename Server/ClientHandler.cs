@@ -18,54 +18,8 @@ namespace MyServer
         private Socket client;
         private static List<string> listOfUserName = new List<string>();
         private string username;
-        // private Boolean pollResult;
-        //private Timer timer1;
-        //public void InitTimer()
-        //{
-        //    timer1 = new Timer();
-        //    timer1.Elapsed += new ElapsedEventHandler(timer1_Tick);
-        //    timer1.Interval = 10000; // in miliseconds
-        //    timer1.Start();
-        //}
-        //private void timer1_Tick(object sender, EventArgs e)
-        //{
-        //    if (this.client.Connected)
-        //    {
-        //        Console.WriteLine("timer called...*************");
-        //        Server.log("polling cli****");
-
-        //        Dictionary<string, string> responseToSend = new Dictionary<string, string>();
-
-        //        responseToSend.Add("poll", "checkQueue");
-        //        ///Server.log("User connected: " + username);
-        //        //responseToSend.Add("file", null);
-        //        SendMessage(responseToSend);
-        //    }
-        //    else
-        //    {
-        //        timer1.Stop();
-        //    }
-        //}
-
         public void pollClient()
         {
-            //while (this.client.Connected)
-            //{
-
-            //Task.Factory.StartNew(() =>
-            //{
-            //    while (this.client.Connected)
-            //    {
-            //        System.Threading.Thread.Sleep(10000);
-            //        responseToSend.Add("poll", "checkQueue");
-            //        SendMessage(responseToSend);
-            //    }
-            //});
-
-
-            //}
-
-
             while (this.client.Connected)
             {
 
@@ -73,8 +27,7 @@ namespace MyServer
                 responseToSend.Add("poll", "checkQueue");
                 SendMessage(responseToSend);
 
-                Thread.Sleep(30000);
-                //Task.Delay(10000);
+                Thread.Sleep(60000);
 
             }
         }
@@ -119,13 +72,8 @@ namespace MyServer
         {
             try
             {
-
-                //s.Poll(-1, SelectMode.SelectRead)
                 while (true)
                 {
-
-                    //pollResult = this.client.Poll(10000, SelectMode.SelectRead);
-
                     var message = ReadMessage();
                     if (message != null)
                     {
@@ -149,22 +97,11 @@ namespace MyServer
                         }
                         else if (message.ContainsKey("wordQueue"))
                         {
-                            //todo 9096
+                            // getting string, splitting and passing to function.
                             var wordsToAdd = message["wordQueue"];
                             Server.log("adding words to lexicon : " + wordsToAdd);
-                            var words = new List<string>(wordsToAdd.Split(' '));
-                            //99096
-                            var temp = new Collection<string>(FileUtils.ReadFileContents("C:\\sample files\\serverFile.txt.txt").Split(' '));
-                            //words.RemoveAll(ReferenceWords);
-                            var result=" ";
-                            foreach (string wrd in words)
-                            {
-                                if (!temp.Contains(wrd))
-                                {
-                                    result = String.Join(" ", wrd);
-                                }
-                            }
-                            FileUtils.AddWordsToLexicon(result);
+                            var words = wordsToAdd.Split(" ");
+                            FileUtils.AddToLexicon(words);
                         }
                         else
                         {
@@ -188,9 +125,7 @@ namespace MyServer
 
                                     responseToSend.Add("status", "Accepted");
                                     Server.log("User connected: " + username);
-                                    //responseToSend.Add("file", null);
                                     SendMessage(responseToSend);
-                                    //InitTimer();
                                     //ref https://www.csharp-examples.net/create-new-thread/
                                     Thread thread = new Thread(new ThreadStart(pollClient));
                                     thread.Start();
@@ -201,7 +136,6 @@ namespace MyServer
                                     Dictionary<string, string> responseToSend = new Dictionary<string, string>();
                                     responseToSend.Add("status", "Rejected");
                                     Server.log("User rejected:");
-                                    //responseToSend.Add("file", null);
                                     SendMessage(responseToSend);
 
                                 }
@@ -233,11 +167,10 @@ namespace MyServer
             }
 
         }
+
         private Dictionary<string, string> ProcessMessage(Dictionary<string, string> message)
         {
             //logic to check repeated user names
-
-
             var fileContents = message.ContainsKey("file") ? message["file"] : null;
             var respFileContents = FileUtils.PerformSpellCheck(fileContents);
             Dictionary<string, string> responseToSend = new Dictionary<string, string>();
@@ -251,9 +184,8 @@ namespace MyServer
                 responseToSend.Add("status", "Failed");
                 responseToSend.Add("file", "");
             }
-            //SendMessage(responseToSend);//9096
-            return responseToSend;
 
+            return responseToSend;
         }
     }
 }
