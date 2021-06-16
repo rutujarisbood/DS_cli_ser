@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "..\Client\Client.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerGUI", "..\GUI\ServerGUI.csproj", "{A1B03BEC-AAC3-42A9-B1E0-EA6F73344D30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientUI", "..\ClientUI\ClientUI.csproj", "{B2BCB6E0-BF62-4871-A6C7-CFDD777DF256}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientUI", "..\ClientUI\ClientUI.csproj", "{B2BCB6E0-BF62-4871-A6C7-CFDD777DF256}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

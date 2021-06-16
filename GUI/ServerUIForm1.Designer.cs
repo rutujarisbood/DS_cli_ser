@@ -46,7 +46,7 @@ namespace GUI
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(621, 25);
+            this.button2.Location = new System.Drawing.Point(27, 25);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(94, 29);
             this.button2.TabIndex = 1;

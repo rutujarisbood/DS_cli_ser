@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -16,8 +17,10 @@ namespace MyServer
     public class ClientHandler
     {
         private Socket client;
+        private static Socket sock;
         private static List<string> listOfUserName = new List<string>();
         private string username;
+
         public void pollClient()
         {
             while (this.client.Connected)
@@ -25,9 +28,9 @@ namespace MyServer
 
                 Dictionary<string, string> responseToSend = new Dictionary<string, string>();
                 responseToSend.Add("poll", "checkQueue");
-                SendMessage(responseToSend);
+                this.client.SendMessage(responseToSend);
 
-                Thread.Sleep(60000);
+                Thread.Sleep(6000);
 
             }
         }
@@ -37,36 +40,6 @@ namespace MyServer
 
         }
 
-        private void SendMessage(Dictionary<string, string> message)
-        {
-            using (StreamWriter writer = new StreamWriter(new NetworkStream(client)))
-            {
-                writer.WriteLine(JsonConvert.SerializeObject(message));
-                writer.Flush();
-            }
-        }
-
-        private Dictionary<string, string> ReadMessage()
-        {
-            try
-            {
-                // https://stackoverflow.com/questions/1450263/c-sharp-streamreader-readline-does-not-work-properly
-
-                using (StreamReader reader = new StreamReader(new NetworkStream(client)))
-                {
-                    string line = null;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        return JsonConvert.DeserializeObject<Dictionary<string, string>>(line);
-                    }
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
 
         public void Run()
         {
@@ -74,9 +47,11 @@ namespace MyServer
             {
                 while (true)
                 {
-                    var message = ReadMessage();
+                    var message = this.client.ReadMessage();
                     if (message != null)
                     {
+                        //trial
+                        //SendMessageToBkp(message);
                         if (message.ContainsKey("exit"))
                         {
                             username = message["exit"];
@@ -102,6 +77,13 @@ namespace MyServer
                             Server.log("adding words to lexicon : " + wordsToAdd);
                             var words = wordsToAdd.Split(" ");
                             FileUtils.AddToLexicon(words);
+                            Server.messagesForBackup.Add(wordsToAdd);
+                        }
+                        else if (message.ContainsKey("updateData"))
+                        {
+                            // This code is for backup server only
+                            var wordsToAdd = message["words"];
+                            FileUtils.AddToLexicon(wordsToAdd.Split(" "));
                         }
                         else
                         {
@@ -112,32 +94,43 @@ namespace MyServer
                                 {
                                     Server.log($"Received file from user {message["username"]}:{Environment.NewLine}{message["file"]}");
                                     var resp = ProcessMessage(message);
-                                    SendMessage(resp);
+
+                                    this.client.SendMessage(resp);
                                 }
                             }
                             else
                             {
-
-                                if (IsUserNameUnique(username))
+                                // this if will only run for backup.
+                                if (message.ContainsKey("isFromMainServer") && message["isFromMainServer"] == "Yes")
                                 {
-                                    listOfUserName.Add(username);
-                                    Dictionary<string, string> responseToSend = new Dictionary<string, string>();
-
-                                    responseToSend.Add("status", "Accepted");
-                                    Server.log("User connected: " + username);
-                                    SendMessage(responseToSend);
-                                    //ref https://www.csharp-examples.net/create-new-thread/
-                                    Thread thread = new Thread(new ThreadStart(pollClient));
-                                    thread.Start();
 
                                 }
                                 else
                                 {
-                                    Dictionary<string, string> responseToSend = new Dictionary<string, string>();
-                                    responseToSend.Add("status", "Rejected");
-                                    Server.log("User rejected:");
-                                    SendMessage(responseToSend);
 
+                                    if (IsUserNameUnique(username))
+                                    {
+                                        listOfUserName.Add(username);
+                                        Dictionary<string, string> responseToSend = new Dictionary<string, string>();
+
+                                        responseToSend.Add("status", "Accepted");
+                                        Server.log("User connected: " + username);
+                                        Console.WriteLine("User connected: " + username);
+                                        //responseToSend.Add("BackupPort", ConfigurationManager.AppSettings.Get("BackupPort"));
+                                        this.client.SendMessage(responseToSend);
+                                        //ref https://www.csharp-examples.net/create-new-thread/
+                                        Thread thread = new Thread(new ThreadStart(pollClient));
+                                        thread.Start();
+
+                                    }
+                                    else
+                                    {
+                                        Dictionary<string, string> responseToSend = new Dictionary<string, string>();
+                                        responseToSend.Add("status", "Rejected");
+                                        Server.log("User rejected:");
+                                        this.client.SendMessage(responseToSend);
+
+                                    }
                                 }
 
                             }
@@ -149,9 +142,11 @@ namespace MyServer
             }
             catch (Exception e)
             {
-                Server.log(e.ToString());
-                Server.log($"Client {username} disconnected");
-                throw;
+                if (Server.isPrimary)
+                {
+                    Server.log(e.ToString());
+                    Server.log($"Client {username} disconnected");
+                }
             }
 
         }

@@ -35,14 +35,16 @@ namespace GUI
 
         public void Log(String message)
         {
-            textBox1.Text += message + Environment.NewLine;
+            textBox1.AppendText(message + Environment.NewLine);
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            //String port = textBox_port.Text;
             Task.Run(() =>
             {
-                sv = new Server((String message) => { Log(message); });
+                sv = new Server((String message) => { Log(message); }, GUI.Program.isMainServer);
+                
                 sv.Run();
             });
         }

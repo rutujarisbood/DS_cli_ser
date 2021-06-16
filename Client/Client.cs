@@ -21,6 +21,8 @@ namespace Client
         private static Socket sock;
         public static string fileToSend = null;
 
+
+
         // https://docs.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.observablecollection-1?view=net-5.0
         //  an event is fired whenever any modification happens to a collection.
         // Since we are not using a Queue, we clear the contents of wordsToAddToLexicon after we use it to send to server which results in event trigger.
@@ -28,6 +30,9 @@ namespace Client
 
         private static Action<String> ClientLog;
         public static Action<String> updateLexicons;
+        private static int currentPort;
+        
+
         static Client()
         {
             // we set our event handler in the static constructor of this class.
@@ -45,61 +50,22 @@ namespace Client
 
         }
 
-        private static void SendMessageToServer(Dictionary<string, string> message)
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(new NetworkStream(sock)))
-                {
-                    var x = JsonConvert.SerializeObject(message);
-                    writer.WriteLine(JsonConvert.SerializeObject(message));
-                    writer.Flush();
-                    //wordsToAddToLexicon.Clear();
-                }
-            }
-            catch (Exception e)
-            {
-                ClientLog("Could not connect.Server connection lost.");
-            }
-        }
-
-        private static Dictionary<string, string> ReadMessage()
-        {
-
-            try
-            {
-                // https://stackoverflow.com/questions/1450263/c-sharp-streamreader-readline-does-not-work-properly
-
-                using (StreamReader reader = new StreamReader(new NetworkStream(sock)))
-                {
-                    string line = null;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        return JsonConvert.DeserializeObject<Dictionary<string, string>>(line);
-                    }
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
         public static void SendFile(String filename, String clientName)
         {
             Dictionary<string, string> message = null;
             if (filename != null)
             {
                 message = new Dictionary<string, string> { { "username", clientName }, { "file", File.ReadAllText(filename) } };
-                SendMessageToServer(message);
+                sock.SendMessage(message);
             }
         }
 
         public static void exitClient(String clientName)
-        {
-            var fmessage = new Dictionary<string, string> { { "exit", clientName } };
-            SendMessageToServer(fmessage);
+        {//9096
+            if (sock.Connected) {
+                var fmessage = new Dictionary<string, string> { { "exit", clientName } };
+                sock.SendMessage(fmessage);
+            }
         }
 
         public static void addWordToQueue(String wordToAdd)
@@ -110,72 +76,81 @@ namespace Client
 
         public static void Run(Action<String> log, String clientName)
         {
-            try
+            while (true)
             {
-                ClientLog = log;
-                sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                sock.Connect(IPAddress.Parse("127.0.0.1"), 8000);
-
-                log("Connected to server.");
-                var fmessage = new Dictionary<string, string> { { "register", clientName } };
-                SendMessageToServer(fmessage);
-                while (true)
+                try
                 {
-                    while ((fmessage = ReadMessage()) == null) { }
-                    // wait until a reply
+                    ClientLog = log;
+                    sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    sock.Connect(IPAddress.Parse("127.0.0.1"), 8000);
 
-                    if (fmessage["status"] == "Accepted")
+                    log("Connected to server.");
+                    var fmessage = new Dictionary<string, string> { { "register", clientName } };
+                    sock.SendMessage(fmessage);
+                    while (true)
                     {
-                        log("Username accepted.");
-                        break;
-                    }
-                    else
-                    {
-                        log("Username rejected.");
-                        break;
-                    }
-                }
+                        while ((fmessage = sock.ReadMessage()) == null) { }
+                        // wait until a reply
 
-                while (true)
-                {
-                    Dictionary<string, string> message = null;
-                    while ((message = ReadMessage()) != null)
-                    {
-                        if (message.ContainsKey("status") && message.ContainsKey("file"))
+                        if (fmessage["status"] == "Accepted")
                         {
-                            switch (message["status"])
+                            //int backupPort = int.Parse(fmessage["BackupPort"]);
+                            log("Username accepted.");
+                            break;
+                        }
+                        else
+                        {
+                            log("Username rejected.");
+                            break;
+                        }
+                    }
+
+                    while (true)
+                    {
+                        Dictionary<string, string> message = null;
+                        while ((message = sock.ReadMessage()) != null)
+                        {
+                            if (message.ContainsKey("status") && message.ContainsKey("file"))
                             {
-                                case "Done":
-                                    log("File processing complete");
-                                    log("File contents: " + message["file"]);
-                                    break;
-                                case "Failed":
-                                    log("File processing failed.");
-                                    break;
+                                switch (message["status"])
+                                {
+                                    case "Done":
+                                        log("File processing complete");
+                                        log("File contents: " + message["file"]);
+                                        break;
+                                    case "Failed":
+                                        log("File processing failed.");
+                                        break;
+                                }
                             }
+                            else if (message.ContainsKey("poll") && message["poll"] == "checkQueue" && wordsToAddToLexicon.Count > 0)
+                            {
+                                ClientLog("preparing lexicon queue to send");
+
+                                // get the contents of list separated by space.
+                                string result = String.Join(' ', wordsToAddToLexicon);
+                                wordsToAddToLexicon.Clear();
+
+                                ClientLog("sending to server : " + result);
+                                var frmessage = new Dictionary<string, string> { { "wordQueue", result } };
+                                sock.SendMessage(frmessage);
+                            }
+
                         }
-                        else if (message.ContainsKey("poll") && message["poll"] == "checkQueue" && wordsToAddToLexicon.Count > 0)
-                        {
-                            ClientLog("preparing lexicon queue to send");
 
-                            // get the contents of list separated by space.
-                            string result = String.Join(' ', wordsToAddToLexicon);
-                            wordsToAddToLexicon.Clear();
-
-                            ClientLog("sending to server : " + result);
-                            var frmessage = new Dictionary<string, string> { { "wordQueue", result } };
-                            SendMessageToServer(frmessage);
-                        }
-
+                        Thread.Sleep(100);
                     }
-
-
-                    Thread.Sleep(100);
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debugger.Break();
+                    if (ex is IOException)
+                    {
+                        ClientLog("Connection lost, retrying in 5 secs");
+                        Thread.Sleep(5000);
+                    }
+                   
+                }
             }
         }
     }

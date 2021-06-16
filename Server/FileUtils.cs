@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using System.Configuration;
 
 namespace MyServer
 {
@@ -14,15 +15,21 @@ namespace MyServer
     {
         // using Map/Dictionary to avoid checking duplicates manually.
         private static Dictionary<string, string> ReferenceWords;
+
         static FileUtils()
         {
             ReadLexicon();
         }
 
-        private static void ReadLexicon()
+        private static string GetFilePath()
         {
-            var words = new Collection<string>(ReadFileContents("C:\\sample files\\serverFile.txt.txt").Split(' '));
+            var filePath = ConfigurationManager.AppSettings.Get(Server.isPrimary ? "Primary" : "Backup");
+            return filePath;
+        }
 
+        public static void ReadLexicon()
+        {
+            var words = new Collection<string>(ReadFileContents(GetFilePath()).Split(' '));
             ReferenceWords = words.ToDictionary<string, string>(value => value);
         }
 
@@ -59,7 +66,7 @@ namespace MyServer
                 words.ToList().ForEach(x => ReferenceWords[x] = x);
                 try
                 {
-                    File.WriteAllText("C:\\sample files\\serverFile.txt.txt", String.Join(' ', ReferenceWords.Keys));
+                    File.WriteAllText(GetFilePath(), String.Join(' ', ReferenceWords.Keys));
                 }
                 catch (Exception e)
                 {
